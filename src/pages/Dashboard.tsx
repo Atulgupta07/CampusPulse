@@ -1,13 +1,17 @@
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { 
   Calendar, 
   CheckCircle, 
   Clock, 
   AlertCircle,
   FileText,
-  Users
+  Users,
+  X
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import NotificationCenter from '../components/NotificationCenter';
 
 const StatCard = ({ title, value, icon: Icon, color, delay }: any) => (
   <motion.div 
@@ -27,8 +31,11 @@ const StatCard = ({ title, value, icon: Icon, color, delay }: any) => (
 );
 
 export default function Dashboard() {
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const navigate = useNavigate();
+
   return (
-    <div className="w-full min-h-screen bg-gray-900 text-white font-sans flex flex-col">
+    <div className="w-full min-h-screen bg-gray-900 text-white font-sans flex flex-col relative overflow-hidden">
       {/* Header */}
       <header className="px-8 py-6 border-b border-gray-800 flex justify-between items-center bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">
         <div>
@@ -37,7 +44,8 @@ export default function Dashboard() {
           </h1>
           <p className="text-gray-400 text-sm">Welcome back, Professor Smith!</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+          <NotificationCenter />
           <Link to="/" className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
             Logout
           </Link>
@@ -53,6 +61,33 @@ export default function Dashboard() {
           <StatCard title="Pending Approvals" value="5" icon={AlertCircle} color="red" delay={0.3} />
           <StatCard title="Completed" value="28" icon={CheckCircle} color="emerald" delay={0.4} />
         </div>
+
+        {/* Charts Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.45 }}
+          className="bg-gray-800 border border-gray-700 rounded-2xl p-6 mb-8"
+        >
+          <h2 className="text-xl font-bold mb-4 text-white">Task Completion Trends</h2>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={[
+                { name: 'Mon', completed: 4 },
+                { name: 'Tue', completed: 7 },
+                { name: 'Wed', completed: 5 },
+                { name: 'Thu', completed: 10 },
+                { name: 'Fri', completed: 12 },
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                <XAxis dataKey="name" stroke="#9ca3af" />
+                <YAxis stroke="#9ca3af" />
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                <Line type="monotone" dataKey="completed" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
 
         {/* Quick Actions & Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -93,19 +128,73 @@ export default function Dashboard() {
               Quick Actions
             </h2>
             <div className="flex flex-col gap-3">
-              <button className="w-full py-3 px-4 bg-gray-900/50 hover:bg-blue-500/20 hover:text-blue-400 rounded-xl transition-all text-left font-medium border border-transparent hover:border-blue-500/30">
+              <button 
+                onClick={() => setIsTaskModalOpen(true)}
+                className="w-full py-3 px-4 bg-gray-900/50 hover:bg-blue-500/20 text-gray-300 hover:text-blue-400 rounded-xl transition-all text-left font-medium border border-transparent hover:border-blue-500/30 cursor-pointer"
+              >
                 + Create New Task
               </button>
-              <button className="w-full py-3 px-4 bg-gray-900/50 hover:bg-purple-500/20 hover:text-purple-400 rounded-xl transition-all text-left font-medium border border-transparent hover:border-purple-500/30">
+              <button 
+                onClick={() => navigate('/calendar')}
+                className="w-full py-3 px-4 bg-gray-900/50 hover:bg-purple-500/20 text-gray-300 hover:text-purple-400 rounded-xl transition-all text-left font-medium border border-transparent hover:border-purple-500/30 cursor-pointer"
+              >
                 + Schedule Event
               </button>
-              <button className="w-full py-3 px-4 bg-gray-900/50 hover:bg-orange-500/20 hover:text-orange-400 rounded-xl transition-all text-left font-medium border border-transparent hover:border-orange-500/30">
+              <button 
+                className="w-full py-3 px-4 bg-gray-900/50 hover:bg-orange-500/20 text-gray-300 hover:text-orange-400 rounded-xl transition-all text-left font-medium border border-transparent hover:border-orange-500/30 cursor-pointer"
+              >
                 + Request Approval
               </button>
             </div>
           </motion.div>
         </div>
       </main>
+
+      {/* Create Task Modal */}
+      <AnimatePresence>
+        {isTaskModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsTaskModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+              <h2 className="text-2xl font-bold mb-6 text-white">Create New Task</h2>
+              <form className="space-y-4 flex flex-col" onSubmit={(e) => { e.preventDefault(); setIsTaskModalOpen(false); }}>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Task Title</label>
+                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" placeholder="Enter task title" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Assignee</label>
+                  <select className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+                    <option>Student Group A</option>
+                    <option>HOD Mathematics</option>
+                    <option>Admin</option>
+                  </select>
+                </div>
+                <div className="pt-2">
+                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors shadow-lg shadow-blue-600/20">
+                    Create Task
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -2,6 +2,10 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import CalendarPage from './pages/CalendarPage';
+import Tasks from './pages/Tasks';
+import Approvals from './pages/Approvals';
+import Reports from './pages/Reports';
+import Chatbot from './components/Chatbot';
 
 function LandingPage() {
   return (
@@ -28,7 +32,11 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/approvals" element={<Approvals />} />
+        <Route path="/reports" element={<Reports />} />
       </Routes>
+      <Chatbot />
     </BrowserRouter>
   );
 }
