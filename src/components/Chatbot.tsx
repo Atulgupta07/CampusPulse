@@ -1,60 +1,187 @@
-import React, { useState } from 'react';
-import { MessageSquare, X, Send } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { FaRobot, FaTimes } from "react-icons/fa";
+
 
 export default function Chatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([{ sender: 'ai', text: 'Hi, I am your AI assistant. How can I help you today?' }]);
-  const [input, setInput] = useState('');
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages([...messages, { sender: 'user', text: input }]);
-    setInput('');
-    setTimeout(() => {
-      setMessages(prev => [...prev, { sender: 'ai', text: 'Mocked AI Response.' }]);
-    }, 1000);
-  };
 
-  return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="absolute bottom-16 right-0 w-80 bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-            style={{ height: '400px' }}
-          >
-            <div className="p-4 bg-gray-900 border-b border-gray-700 flex justify-between items-center">
-              <h3 className="font-semibold text-white flex items-center gap-2"><MessageSquare size={18} className="text-blue-400" /> AI Assistant</h3>
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white"><X size={18} /></button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`p-3 rounded-2xl max-w-[80%] text-sm ${msg.sender === 'user' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-200 rounded-bl-none'}`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="p-3 bg-gray-900 border-t border-gray-700 flex gap-2">
-              <input 
-                value={input} onChange={(e) => setInput(e.target.value)} 
-                onKeyPress={e => e.key === 'Enter' && handleSend()}
-                type="text" className="flex-1 bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Type a message..." 
-              />
-              <button onClick={handleSend} className="p-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition"><Send size={16} /></button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+const [open,setOpen] = useState(false);
 
-      <button onClick={() => setIsOpen(!isOpen)} className="p-4 bg-blue-600 text-white rounded-full shadow-xl hover:bg-blue-700 transition-transform transform hover:scale-105">
-        <MessageSquare size={24} />
-      </button>
-    </div>
-  );
+
+const messages = [
+
+{
+user:"How many pending approvals are there?",
+ai:"There are 6 pending approvals. AI recommends reviewing project approvals first."
+},
+
+
+{
+user:"Which tasks are high priority?",
+ai:"AI detected AI Lab Maintenance and Project Review as high priority activities."
+},
+
+
+{
+user:"Give department summary",
+ai:"AIML Department has 14 faculty members, 24 active tasks and 85% workflow efficiency."
+}
+
+
+];
+
+
+
+return (
+
+
+<>
+
+{/* Floating Button */}
+
+
+<button
+
+onClick={()=>setOpen(!open)}
+
+className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-xl"
+
+>
+
+{
+
+open ?
+
+<FaTimes size={22}/>
+
+:
+
+<FaRobot size={22}/>
+
+}
+
+
+</button>
+
+
+
+
+
+
+{
+open &&
+
+
+<div className="fixed bottom-20 right-6 w-96 bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+
+
+<div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+
+
+<h2 className="text-xl font-bold">
+
+🤖 HieraSync AI Assistant
+
+</h2>
+
+
+<p className="text-sm">
+
+AIML Department Support
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+<div className="p-4 space-y-4 h-96 overflow-y-auto">
+
+
+{
+
+messages.map((msg,index)=>(
+
+
+<div key={index}>
+
+
+<div className="bg-gray-100 rounded-lg p-3">
+
+<b>
+You:
+</b>
+
+<br/>
+
+{msg.user}
+
+</div>
+
+
+
+
+<div className="bg-blue-100 rounded-lg p-3 mt-2">
+
+<b>
+AI:
+</b>
+
+<br/>
+
+{msg.ai}
+
+</div>
+
+
+
+</div>
+
+
+))
+
+
+}
+
+
+</div>
+
+
+
+
+
+<div className="border-t p-3">
+
+
+<input
+
+placeholder="Ask HieraSync AI..."
+
+className="w-full border rounded-lg p-3 outline-none"
+
+/>
+
+
+</div>
+
+
+
+
+</div>
+
+
+}
+
+
+
+</>
+
+
+);
+
 }

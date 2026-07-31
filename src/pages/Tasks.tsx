@@ -1,131 +1,526 @@
-import React, { useState } from 'react';
-import { 
-  DndContext, 
-  closestCorners, 
-  KeyboardSensor, 
-  PointerSensor, 
-  useSensor, 
-  useSensors,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import { sortableKeyboardCoordinates, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
 
-const initialTasks = [
-  { id: '1', title: 'Grade Midterm Papers', status: 'TODO', priority: 'HIGH' },
-  { id: '2', title: 'Update Syllabus', status: 'IN_PROGRESS', priority: 'MEDIUM' },
-  { id: '3', title: 'Department Meeting Prep', status: 'COMPLETED', priority: 'LOW' },
-];
-
-function SortableTask({ task }: any) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  const priorityColors: any = {
-    HIGH: 'text-red-400 bg-red-400/10',
-    MEDIUM: 'text-orange-400 bg-orange-400/10',
-    LOW: 'text-blue-400 bg-blue-400/10',
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="p-4 bg-gray-900 border border-gray-700 rounded-xl mb-3 cursor-grab active:cursor-grabbing hover:border-blue-500/50 transition-colors"
-    >
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="text-gray-200 font-medium">{task.title}</h4>
-      </div>
-      <span className={`text-xs px-2 py-1 rounded-md font-medium ${priorityColors[task.priority]}`}>
-        {task.priority}
-      </span>
-    </div>
-  );
-}
-
-function Column({ id, title, tasks }: any) {
-  return (
-    <div className="flex flex-col bg-gray-800 rounded-2xl p-4 border border-gray-700 w-full min-h-[500px]">
-      <h3 className="text-gray-400 font-medium mb-4 flex justify-between items-center">
-        {title} <span className="bg-gray-700 px-2 py-1 rounded-md text-xs">{tasks.length}</span>
-      </h3>
-      <SortableContext items={tasks.map((t: any) => t.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex-1">
-          {tasks.map((task: any) => (
-            <SortableTask key={task.id} task={task} />
-          ))}
-        </div>
-      </SortableContext>
-    </div>
-  );
-}
 
 export default function Tasks() {
-  const [tasks, setTasks] = useState(initialTasks);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-    
-    // Quick mocked drop logic for demonstration
-    if (active.id !== over.id) {
-      console.log(`Moved task ${active.id} to ${over.id}`);
-      // Real logic requires array reordering based on column IDs
-    }
-  };
+const facultyList=[
 
-  return (
-    <div className="flex h-screen bg-gray-900 text-white">
-      {/* Sidebar Placeholder */}
-      <div className="w-64 bg-gray-800 border-r border-gray-700 p-6 flex flex-col">
-        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 mb-8">
-          CampusFlow
-        </h2>
-        <nav className="flex flex-col gap-4 flex-1">
-          <Link to="/dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboard</Link>
-          <Link to="/tasks" className="text-blue-400 font-medium bg-blue-500/10 px-4 py-2 rounded-lg">Tasks Kanban</Link>
-          <Link to="/calendar" className="text-gray-400 hover:text-white transition-colors">Smart Calendar</Link>
-        </nav>
-      </div>
+"Dr. Animesh Tayal",
+"Mr. Ravindra R. Rasekar",
+"Dr. Bhushan Mahendra Manjre",
+"Ms. Suchita Surendra Mesakar",
+"Ms. Sweta Arun Bokade",
+"Mr. Nitesh Lileshwar Hatwar",
+"Mr. Nikhil Sakhare",
+"Mrs. Neha Gurnani",
+"Mrs. Mayuri Getme",
+"Ms. Sujata D. Sardare",
+"Ms. Swati Kamalsingh Thakur",
+"Mrs. Snehal Pawar",
+"Mr. Viveksingh Chauhan",
+"Ms. Harshika Dehariya"
 
-      <main className="flex-1 p-8 overflow-y-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="mb-6 flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Task Management</h1>
-              <p className="text-gray-400 text-sm">Drag and drop tasks across stages.</p>
-            </div>
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors font-medium">
-              + Add Task
-            </button>
-          </div>
+];
 
-          <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Column id="TODO" title="To Do" tasks={tasks.filter(t => t.status === 'TODO')} />
-              <Column id="IN_PROGRESS" title="In Progress" tasks={tasks.filter(t => t.status === 'IN_PROGRESS')} />
-              <Column id="COMPLETED" title="Completed" tasks={tasks.filter(t => t.status === 'COMPLETED')} />
-            </div>
-          </DndContext>
-        </motion.div>
-      </main>
-    </div>
-  );
+
+
+const [showForm,setShowForm]=useState(false);
+
+
+
+const [tasks,setTasks]=useState([
+
+
+{
+title:"AI Lab Maintenance",
+assigned:"Mrs. Neha Gurnani",
+deadline:"05 August 2026",
+priority:"High",
+status:"In Progress",
+progress:"75%"
+},
+
+
+{
+title:"Final Year Project Review",
+assigned:"Dr. Animesh Tayal",
+deadline:"10 August 2026",
+priority:"Medium",
+status:"Pending Approval",
+progress:"50%"
+},
+
+
+{
+title:"Student Research Tracking",
+assigned:"Dr. Bhushan Mahendra Manjre",
+deadline:"15 August 2026",
+priority:"Low",
+status:"Completed",
+progress:"100%"
+}
+
+
+]);
+
+
+
+
+
+const [task,setTask]=useState({
+
+title:"",
+assigned:"",
+deadline:"",
+priority:"High"
+
+});
+
+
+
+
+
+
+function addTask(){
+
+
+setTasks([
+
+...tasks,
+
+{
+
+title:task.title,
+assigned:task.assigned,
+deadline:task.deadline,
+priority:task.priority,
+status:"Pending",
+progress:"0%"
+
+}
+
+]);
+
+
+setShowForm(false);
+
+
+}
+
+
+
+
+
+
+
+return(
+
+
+<div className="p-8 bg-blue-50 min-h-screen">
+
+
+
+
+
+<div className="flex justify-between items-center mb-8">
+
+
+<div>
+
+<h1 className="text-4xl font-bold text-gray-800">
+
+Department Task Management
+
+</h1>
+
+
+<p className="text-gray-500 mt-2">
+
+Manage department activities, deadlines and approvals
+
+</p>
+
+
+</div>
+
+
+
+
+
+<button
+
+onClick={()=>setShowForm(!showForm)}
+
+className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700"
+
+>
+
++ Add New Task
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+{
+showForm &&
+
+
+<div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+
+
+<h2 className="text-2xl font-bold text-blue-700 mb-5">
+
+Create New Task
+
+</h2>
+
+
+
+
+<input
+
+placeholder="Enter Task Name"
+
+className="w-full border p-3 rounded-xl mb-4"
+
+onChange={(e)=>setTask({...task,title:e.target.value})}
+
+/>
+
+
+
+
+
+
+
+<select
+
+className="w-full border p-3 rounded-xl mb-4"
+
+onChange={(e)=>setTask({...task,assigned:e.target.value})}
+
+>
+
+
+<option>Select Faculty</option>
+
+
+{
+
+facultyList.map((faculty)=>(
+
+<option key={faculty}>
+
+{faculty}
+
+</option>
+
+
+))
+
+
+}
+
+
+
+</select>
+
+
+
+
+
+
+<input
+
+type="date"
+
+className="w-full border p-3 rounded-xl mb-4"
+
+onChange={(e)=>setTask({...task,deadline:e.target.value})}
+
+/>
+
+
+
+
+
+
+<select
+
+className="w-full border p-3 rounded-xl mb-5"
+
+onChange={(e)=>setTask({...task,priority:e.target.value})}
+
+>
+
+
+<option>High</option>
+
+<option>Medium</option>
+
+<option>Low</option>
+
+
+</select>
+
+
+
+
+
+
+<button
+
+onClick={addTask}
+
+className="bg-green-600 text-white px-8 py-3 rounded-xl"
+
+>
+
+Create Task
+
+</button>
+
+
+
+</div>
+
+
+}
+
+
+
+
+
+
+
+
+<div className="grid grid-cols-3 gap-6">
+
+
+
+{
+
+tasks.map((item,index)=>(
+
+
+<div
+
+key={index}
+
+className="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl hover:-translate-y-2 transition"
+
+>
+
+
+
+
+<h2 className="text-xl font-bold text-blue-700">
+
+{item.title}
+
+</h2>
+
+
+
+
+<p className="mt-4">
+
+<b>Assigned To</b>
+
+<br/>
+
+{item.assigned}
+
+</p>
+
+
+
+
+
+<p className="mt-3">
+
+<b>Deadline:</b>
+
+<br/>
+
+{item.deadline}
+
+</p>
+
+
+
+
+
+
+
+<p className="mt-3">
+
+<b>Priority:</b>
+
+
+<span
+
+className={
+
+`ml-2 px-3 py-1 rounded-full text-sm
+
+${
+
+item.priority==="High"
+
+?
+
+"bg-red-100 text-red-600"
+
+:
+
+item.priority==="Medium"
+
+?
+
+"bg-orange-100 text-orange-600"
+
+:
+
+"bg-green-100 text-green-600"
+
+}
+
+`
+
+}
+
+>
+
+{item.priority}
+
+</span>
+
+
+
+</p>
+
+
+
+
+
+
+
+<p className="mt-4">
+
+
+<b>Status:</b>
+
+
+<span className="ml-2 text-blue-600 font-semibold">
+
+{item.status}
+
+</span>
+
+
+
+</p>
+
+
+
+
+
+
+
+
+<div className="mt-5">
+
+
+<div className="bg-gray-200 rounded-full h-3">
+
+
+<div
+
+className="bg-blue-600 h-3 rounded-full"
+
+style={{width:item.progress}}
+
+/>
+
+
+</div>
+
+
+
+<p className="mt-2 font-semibold text-gray-600">
+
+{item.progress} Completed
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+))
+
+
+}
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div className="mt-10 bg-gradient-to-r from-blue-100 to-cyan-100 border rounded-3xl p-6 shadow">
+
+
+<h2 className="text-2xl font-bold text-blue-700">
+
+🤖 HieraSync AI Recommendation
+
+</h2>
+
+
+
+<p className="mt-3 text-gray-700">
+
+AI suggests prioritizing high priority tasks, monitoring deadlines and completing pending project reviews before due dates.
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+);
+
+
 }
