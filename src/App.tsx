@@ -1,5 +1,3 @@
-import React from "react";
-
 import {
   BrowserRouter,
   Routes,
@@ -18,223 +16,292 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 
 import Chatbot from "./components/Chatbot";
+import Login from "./pages/Auth/Login";
+
+import MainLayout from "./layouts/MainLayout";
 
 
 
 
 // Landing Page
 
-function LandingPage() {
+function LandingPage(){
 
-  return (
+return(
 
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-indigo-100 text-gray-800 flex flex-col items-center justify-center relative overflow-hidden">
+<div className="
+min-h-screen
+bg-gradient-to-br
+from-sky-50
+via-white
+to-indigo-100
+flex
+items-center
+justify-center
+relative
+overflow-hidden
+">
 
 
-      {/* Background Glow */}
+<div className="
+absolute
+top-0
+left-0
+w-96
+h-96
+bg-blue-300
+rounded-full
+blur-3xl
+opacity-30
+">
+</div>
 
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl opacity-30"></div>
 
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-300 rounded-full blur-3xl opacity-30"></div>
+<div className="
+absolute
+bottom-0
+right-0
+w-96
+h-96
+bg-purple-300
+rounded-full
+blur-3xl
+opacity-30
+">
+</div>
 
 
 
+<div className="
+relative
+text-center
+">
 
-      <div className="relative z-10 text-center">
 
+<h1 className="
+text-6xl
+font-extrabold
+mb-5
+">
 
 
-        {/* Title */}
+<span className="text-blue-700">
+HieraSync
+</span>
 
 
-        <h1 className="text-6xl font-extrabold mb-5">
+<span className="text-indigo-600">
+AI
+</span>
 
 
-          <span className="text-blue-700">
-            HieraSync
-          </span>
+</h1>
 
 
-          <span className="text-indigo-600">
-            AI
-          </span>
 
+<p className="
+text-2xl
+font-semibold
+text-gray-700
+">
 
-        </h1>
+AI-Powered Organizational Workflow Management
 
+</p>
 
 
 
+<p className="
+mt-3
+text-lg
+text-gray-500
+">
 
-        <p className="text-2xl font-semibold text-gray-700">
+Artificial Intelligence & Machine Learning Department
 
-          AI-Powered Organizational Workflow Management
+</p>
 
-        </p>
 
 
+<p className="text-gray-500">
 
+SBJIT Nagpur
 
-        <p className="mt-3 text-lg text-gray-500">
+</p>
 
-          Artificial Intelligence & Machine Learning Department
 
-        </p>
 
 
 
-        <p className="text-gray-500">
+<div className="
+grid
+grid-cols-3
+gap-8
+mt-12
+">
 
-          SBJIT Nagpur
 
-        </p>
 
+<div className="
+bg-white
+shadow-xl
+p-7
+rounded-3xl
+w-72
+hover:scale-105
+transition
+">
 
 
+<div className="text-4xl">
+👥
+</div>
 
 
+<h2 className="
+text-xl
+font-bold
+text-blue-700
+mt-3
+">
 
+Faculty Management
 
-        {/* Feature Cards */}
+</h2>
 
 
+<p className="text-gray-600 mt-3">
 
-        <div className="grid grid-cols-3 gap-8 mt-12">
+Manage faculty profiles and activities.
 
+</p>
 
 
+</div>
 
 
-          <div className="bg-white shadow-xl border border-blue-100 p-7 rounded-3xl w-72 hover:-translate-y-2 transition duration-300">
 
 
-            <div className="text-4xl mb-3">
-              👥
-            </div>
 
+<div className="
+bg-white
+shadow-xl
+p-7
+rounded-3xl
+w-72
+hover:scale-105
+transition
+">
 
-            <h2 className="text-xl font-bold text-blue-700">
 
-              Faculty Management
+<div className="text-4xl">
+📋
+</div>
 
-            </h2>
 
+<h2 className="
+text-xl
+font-bold
+text-purple-700
+mt-3
+">
 
+Smart Workflow
 
-            <p className="mt-3 text-gray-600">
+</h2>
 
-              Manage faculty profiles, responsibilities and department activities.
 
-            </p>
+<p className="text-gray-600 mt-3">
 
+Track tasks, approvals and deadlines.
 
-          </div>
+</p>
 
 
+</div>
 
 
 
 
 
-          <div className="bg-white shadow-xl border border-purple-100 p-7 rounded-3xl w-72 hover:-translate-y-2 transition duration-300">
+<div className="
+bg-white
+shadow-xl
+p-7
+rounded-3xl
+w-72
+hover:scale-105
+transition
+">
 
 
-            <div className="text-4xl mb-3">
-              📋
-            </div>
+<div className="text-4xl">
+🤖
+</div>
 
 
-            <h2 className="text-xl font-bold text-purple-700">
+<h2 className="
+text-xl
+font-bold
+text-cyan-700
+mt-3
+">
 
-              Smart Workflow
+AI Assistant
 
-            </h2>
+</h2>
 
 
-            <p className="mt-3 text-gray-600">
+<p className="text-gray-600 mt-3">
 
-              Track tasks, approvals, deadlines and workflow progress.
+AI based workflow support.
 
-            </p>
+</p>
 
 
-          </div>
+</div>
 
 
+</div>
 
 
 
 
 
-          <div className="bg-white shadow-xl border border-cyan-100 p-7 rounded-3xl w-72 hover:-translate-y-2 transition duration-300">
+<Link
 
+to="/login"
 
-            <div className="text-4xl mb-3">
-              🤖
-            </div>
+className="
+inline-block
+mt-12
+bg-gradient-to-r
+from-blue-600
+to-indigo-600
+text-white
+px-10
+py-4
+rounded-2xl
+font-bold
+shadow-lg
+hover:scale-105
+transition
+"
 
+>
 
-            <h2 className="text-xl font-bold text-cyan-700">
+🔐 Login Portal
 
-              AI Assistant
+</Link>
 
-            </h2>
 
 
-            <p className="mt-3 text-gray-600">
+</div>
 
-              AI recommendations and productivity insights.
 
-            </p>
+</div>
 
-
-          </div>
-
-
-
-        </div>
-
-
-
-
-
-
-        {/* Button */}
-
-
-
-        <Link
-
-          to="/dashboard"
-
-          className="inline-block mt-12 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-2xl text-lg font-bold shadow-lg hover:scale-105 transition duration-300"
-
-        >
-
-          🚀 Enter Dashboard
-
-        </Link>
-
-
-
-
-
-        <p className="mt-8 text-gray-400">
-
-          Smart AI Workflow Solution for AIML Department
-
-        </p>
-
-
-
-
-      </div>
-
-
-
-    </div>
-
-  );
+);
 
 }
 
@@ -244,11 +311,10 @@ function LandingPage() {
 
 
 
+function App(){
 
-function App() {
 
-
-return (
+return(
 
 <BrowserRouter>
 
@@ -257,112 +323,111 @@ return (
 
 
 
+{/* Landing */}
 
 <Route
 
 path="/"
 
-element={<LandingPage />}
+element={<LandingPage/>}
 
 />
 
 
 
+{/* Login */}
+
+<Route
+
+path="/login"
+
+element={<Login/>}
+
+/>
+
+
+
+
+
+{/* Main Application */}
+
+<Route element={<MainLayout/>}>
 
 
 <Route
 
 path="/dashboard"
 
-element={<Dashboard />}
+element={<Dashboard/>}
 
 />
-
-
-
 
 
 <Route
 
 path="/employees"
 
-element={<Employees />}
+element={<Employees/>}
 
 />
-
-
-
 
 
 <Route
 
 path="/tasks"
 
-element={<Tasks />}
+element={<Tasks/>}
 
 />
-
-
-
 
 
 <Route
 
 path="/calendar"
 
-element={<CalendarPage />}
+element={<CalendarPage/>}
 
 />
-
-
-
 
 
 <Route
 
 path="/approvals"
 
-element={<Approvals />}
+element={<Approvals/>}
 
 />
-
-
-
 
 
 <Route
 
 path="/reports"
 
-element={<Reports />}
+element={<Reports/>}
 
 />
-
-
-
 
 
 <Route
 
 path="/settings"
 
-element={<Settings />}
+element={<Settings/>}
 
 />
-
-
-
 
 
 <Route
 
 path="/notifications"
 
-element={<Notifications />}
+element={<Notifications/>}
 
 />
 
 
+
+</Route>
 
 
 
@@ -370,15 +435,13 @@ element={<Notifications />}
 
 
 
-
-<Chatbot />
-
+<Chatbot/>
 
 
 </BrowserRouter>
 
-
 );
+
 
 }
 
