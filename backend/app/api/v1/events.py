@@ -1,69 +1,135 @@
+from typing import List, Optional
+from datetime import datetime
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from google.cloud.firestore import Client
 from app.database.session import get_db
-from pydantic import BaseModel
-from datetime import datetime
-from typing import List, Optional
-import uuid
+from app.schemas.schemas import EventCreate, EventUpdate, EventResponse
+from app.auth.permissions import get_current_active_user
+from app.models.models import User
 
 router = APIRouter()
 
-class EventCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    location: Optional[str] = None
-    start_time: datetime
-    end_time: datetime
-
-class EventResponse(EventCreate):
-    id: str
-    
-    class Config:
-        from_attributes = True
+DEFAULT_EVENTS = [
+    {
+        "id": "evt_1",
+        "title": "Final Year Project Review",
+        "date": "05 August 2026",
+        "type": "Academic",
+        "person": "Dr. Animesh Tayal",
+        "creator_id": "system",
+        "created_at": "2026-08-01T10:00:00Z"
+    },
+    {
+        "id": "evt_2",
+        "title": "AI Lab Maintenance",
+        "date": "08 August 2026",
+        "type": "Department Activity",
+        "person": "Mrs. Neha Gurnani",
+        "creator_id": "system",
+        "created_at": "2026-08-01T10:00:00Z"
+    },
+    {
+        "id": "evt_3",
+        "title": "Machine Learning Workshop",
+        "date": "15 August 2026",
+        "type": "Workshop",
+        "person": "Ms. Sweta Arun Bokade",
+        "creator_id": "system",
+        "created_at": "2026-08-01T10:00:00Z"
+    },
+    {
+        "id": "evt_4",
+        "title": "Faculty Meeting",
+        "date": "20 August 2026",
+        "type": "Meeting",
+        "person": "AIML Department Faculty",
+        "creator_id": "system",
+        "created_at": "2026-08-01T10:00:00Z"
+    },
+    {
+        "id": "evt_5",
+        "title": "Student Research Discussion",
+        "date": "25 August 2026",
+        "type": "Research",
+        "person": "Dr. Bhushan Mahendra Manjre",
+        "creator_id": "system",
+        "created_at": "2026-08-01T10:00:00Z"
+    }
+]
 
 @router.get("/", response_model=List[EventResponse])
-def get_events(db: Client = Depends(get_db)):
+def get_events(
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     events_ref = db.collection('events')
-    events = [doc.to_dict() for doc in events_ref.stream()]
+    docs = list(events_ref.stream())
+    events = []
+    if docs:
+        for doc in docs:
+            events.append(doc.to_dict())
+    else:
+        events = DEFAULT_EVENTS
     return events
 
 @router.post("/", response_model=EventResponse)
-def create_event(event: EventCreate, db: Client = Depends(get_db)):
-    # Simple conflict check (note: Firestore doesn't support complex range queries easily, this is simplified)
-    events_ref = db.collection('events')
-    if event.location:
-        query = events_ref.where('location', '==', event.location).stream()
-        for doc in query:
-            doc_data = doc.to_dict()
-            # This is a naive check. A real implementation would parse the dates.
-            # Assuming start_time and end_time are stored in a compatible way
-            if str(doc_data.get('start_time')) < str(event.end_time) and str(doc_data.get('end_time')) > str(event.start_time):
-                raise HTTPException(status_code=400, detail="Event location is already booked for this time")
-
+def create_event(
+    event: EventCreate,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     event_id = str(uuid.uuid4())
-    db_event = event.model_dump()
+    db_event = event.dict()
     db_event['id'] = event_id
-    db_event['creator_id'] = "anonymous" # Normally from current_user
+    db_event['creator_id'] = current_user.id
+    db_event['created_at'] = datetime.utcnow().isoformat()
     
-    events_ref.document(event_id).set(db_event)
+    db.collection('events').document(event_id).set(db_event)
     return db_event
 
+@router.get("/{event_id}", response_model=EventResponse)
+def get_event(
+    event_id: str,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    doc_ref = db.collection('events').document(event_id)
+    doc = doc_ref.get()
+    if not doc.exists:
+        for e in DEFAULT_EVENTS:
+            if e["id"] == event_id:
+                return e
+        raise HTTPException(status_code=404, detail="Event not found")
+    return doc.to_dict()
+
 @router.put("/{event_id}", response_model=EventResponse)
-def update_event(event_id: str, event_update: EventCreate, db: Client = Depends(get_db)):
-    event_ref = db.collection('events').document(event_id)
-    if not event_ref.get().exists:
+def update_event(
+    event_id: str,
+    event_update: EventUpdate,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    doc_ref = db.collection('events').document(event_id)
+    doc = doc_ref.get()
+    if not doc.exists:
         raise HTTPException(status_code=404, detail="Event not found")
         
-    update_data = event_update.model_dump(exclude_unset=True)
-    event_ref.update(update_data)
+    update_data = {k: v for k, v in event_update.dict(exclude_unset=True).items() if v is not None}
+    doc_ref.update(update_data)
     
-    return event_ref.get().to_dict()
+    return doc_ref.get().to_dict()
 
 @router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_event(event_id: str, db: Client = Depends(get_db)):
-    event_ref = db.collection('events').document(event_id)
-    if not event_ref.get().exists:
+def delete_event(
+    event_id: str,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    doc_ref = db.collection('events').document(event_id)
+    if not doc_ref.get().exists:
         raise HTTPException(status_code=404, detail="Event not found")
     
-    event_ref.delete()
+    doc_ref.delete()
     return None
+

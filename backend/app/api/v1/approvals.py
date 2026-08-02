@@ -1,85 +1,139 @@
+from typing import List, Optional
+from datetime import datetime
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from google.cloud.firestore import Client
 from app.database.session import get_db
-from pydantic import BaseModel
-from typing import List, Optional
-import enum
-import uuid
+from app.schemas.schemas import ApprovalCreate, ApprovalUpdate, ApprovalResponse
+from app.auth.permissions import get_current_active_user
+from app.models.models import User
 
 router = APIRouter()
 
-class ApprovalStage(str, enum.Enum):
-    HOD_STAGE = "HOD_STAGE"
-    PRINCIPAL_STAGE = "PRINCIPAL_STAGE"
-    COMPLETED = "COMPLETED"
-
-class ApprovalStatus(str, enum.Enum):
-    PENDING = "PENDING"
-    APPROVED_BY_HOD = "APPROVED_BY_HOD"
-    APPROVED_BY_PRINCIPAL = "APPROVED_BY_PRINCIPAL"
-    REJECTED = "REJECTED"
-
-class ApprovalCreate(BaseModel):
-    title: str
-    description: str
-    requester_id: str
-    hod_id: Optional[str] = None
-    principal_id: Optional[str] = None
-
-class ApprovalUpdate(BaseModel):
-    status: ApprovalStatus
-    comment: Optional[str] = None
-
-class ApprovalResponse(ApprovalCreate):
-    id: str
-    current_stage: ApprovalStage
-    status: ApprovalStatus
-    hod_comment: Optional[str] = None
-    principal_comment: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
+DEFAULT_APPROVALS = [
+    {
+        "id": "app_1",
+        "title": "Final Year Project Review",
+        "requested": "AIML Final Year Students",
+        "assigned": "Dr. Animesh Tayal",
+        "priority": "High",
+        "status": "Pending",
+        "created_at": "2026-08-01T10:00:00Z"
+    },
+    {
+        "id": "app_2",
+        "title": "AI Lab Equipment Request",
+        "requested": "AI Lab Coordinator",
+        "assigned": "Mrs. Neha Gurnani",
+        "priority": "Medium",
+        "status": "Pending",
+        "created_at": "2026-08-01T10:00:00Z"
+    },
+    {
+        "id": "app_3",
+        "title": "Machine Learning Workshop Approval",
+        "requested": "AIML Student Club",
+        "assigned": "Ms. Sweta Arun Bokade",
+        "priority": "Low",
+        "status": "Approved",
+        "created_at": "2026-08-01T10:00:00Z"
+    },
+    {
+        "id": "app_4",
+        "title": "Research Paper Submission Review",
+        "requested": "Student Research Team",
+        "assigned": "Dr. Bhushan Mahendra Manjre",
+        "priority": "High",
+        "status": "Pending",
+        "created_at": "2026-08-01T10:00:00Z"
+    }
+]
 
 @router.get("/", response_model=List[ApprovalResponse])
-def get_approvals(db: Client = Depends(get_db)):
+def get_approvals(
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     approvals_ref = db.collection('approvals')
-    approvals = [doc.to_dict() for doc in approvals_ref.stream()]
+    docs = list(approvals_ref.stream())
+    approvals = []
+    if docs:
+        for doc in docs:
+            approvals.append(doc.to_dict())
+    else:
+        approvals = DEFAULT_APPROVALS
     return approvals
 
 @router.post("/", response_model=ApprovalResponse)
-def create_approval(approval: ApprovalCreate, db: Client = Depends(get_db)):
+def create_approval(
+    approval: ApprovalCreate,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     approval_id = str(uuid.uuid4())
-    db_approval = approval.model_dump()
+    db_approval = approval.dict()
     db_approval['id'] = approval_id
-    db_approval['current_stage'] = ApprovalStage.HOD_STAGE.value
-    db_approval['status'] = ApprovalStatus.PENDING.value
+    db_approval['created_at'] = datetime.utcnow().isoformat()
     
     db.collection('approvals').document(approval_id).set(db_approval)
     return db_approval
 
-@router.put("/{approval_id}/review", response_model=ApprovalResponse)
-def review_approval(approval_id: str, review: ApprovalUpdate, db: Client = Depends(get_db)):
-    approval_ref = db.collection('approvals').document(approval_id)
-    doc = approval_ref.get()
+@router.put("/{approval_id}/approve", response_model=ApprovalResponse)
+def approve_request(
+    approval_id: str,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    doc_ref = db.collection('approvals').document(approval_id)
+    doc = doc_ref.get()
     
     if not doc.exists:
+        for a in DEFAULT_APPROVALS:
+            if a["id"] == approval_id:
+                a["status"] = "Approved"
+                a["reviewed_at"] = datetime.utcnow().isoformat()
+                return a
         raise HTTPException(status_code=404, detail="Approval request not found")
         
-    db_approval = doc.to_dict()
-    db_approval['status'] = review.status.value
-    
-    if review.status == ApprovalStatus.APPROVED_BY_HOD:
-        db_approval['current_stage'] = ApprovalStage.PRINCIPAL_STAGE.value
-        db_approval['hod_comment'] = review.comment
-    elif review.status == ApprovalStatus.APPROVED_BY_PRINCIPAL:
-        db_approval['current_stage'] = ApprovalStage.COMPLETED.value
-        db_approval['principal_comment'] = review.comment
-    elif review.status == ApprovalStatus.REJECTED:
-        db_approval['current_stage'] = ApprovalStage.COMPLETED.value
-        if db_approval.get('current_stage') == ApprovalStage.HOD_STAGE.value:
-            db_approval['hod_comment'] = review.comment
-        else:
-            db_approval['principal_comment'] = review.comment
+    doc_ref.update({
+        "status": "Approved",
+        "reviewed_at": datetime.utcnow().isoformat()
+    })
+    return doc_ref.get().to_dict()
 
-    approval_ref.update(db_approval)
-    return db_approval
+@router.put("/{approval_id}/reject", response_model=ApprovalResponse)
+def reject_request(
+    approval_id: str,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    doc_ref = db.collection('approvals').document(approval_id)
+    doc = doc_ref.get()
+    
+    if not doc.exists:
+        for a in DEFAULT_APPROVALS:
+            if a["id"] == approval_id:
+                a["status"] = "Rejected"
+                a["reviewed_at"] = datetime.utcnow().isoformat()
+                return a
+        raise HTTPException(status_code=404, detail="Approval request not found")
+        
+    doc_ref.update({
+        "status": "Rejected",
+        "reviewed_at": datetime.utcnow().isoformat()
+    })
+    return doc_ref.get().to_dict()
+
+@router.delete("/{approval_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_approval(
+    approval_id: str,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    doc_ref = db.collection('approvals').document(approval_id)
+    if not doc_ref.get().exists:
+        raise HTTPException(status_code=404, detail="Approval request not found")
+        
+    doc_ref.delete()
+    return None
+
