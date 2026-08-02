@@ -39,3 +39,13 @@ backend/venv/
 dist/
 build/
 >>>>>>> ae1d7a4 (Describe your changes)
+# Firebase credentials
+firebase-credentials.json
+
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
