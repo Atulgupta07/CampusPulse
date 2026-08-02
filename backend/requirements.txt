@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+firebase-admin
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+pydantic[email]
+pydantic-settings
+APScheduler
