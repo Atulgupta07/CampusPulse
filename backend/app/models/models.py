@@ -8,7 +8,10 @@ class RoleEnum(str, enum.Enum):
     PRINCIPAL = "PRINCIPAL"
     HOD = "HOD"
     TEACHER = "TEACHER"
+    FACULTY = "FACULTY"
+    TA = "TA"
     STUDENT = "STUDENT"
+    STUDENT_REP = "STUDENT_REP"
 
 class PriorityEnum(str, enum.Enum):
     LOW = "LOW"
@@ -39,9 +42,14 @@ class User(BaseModel):
     id: str
     name: str
     email: str
-    hashed_password: str
-    role: RoleEnum = RoleEnum.TEACHER
-    department_id: Optional[str] = None
+    hashed_password: Optional[str] = None
+    role: RoleEnum = RoleEnum.FACULTY
+    department_id: Optional[str] = "AIML"
+    designation: Optional[str] = "Assistant Professor"
+    area_of_interest: Optional[str] = None
+    joining_date: Optional[str] = "Not Available"
+    association: Optional[str] = "Regular"
+    avatar_url: Optional[str] = None
     status: str = "ACTIVE"
 
 class Department(BaseModel):

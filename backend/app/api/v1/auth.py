@@ -1,9 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from app.database.session import get_db
-from app.schemas.schemas import UserCreate, UserResponse, Token
+from app.schemas.schemas import (
+    UserCreate, UserResponse, LoginRequest, LoginResponse,
+    EmployeeResponse, EmployeeCreate, EmployeeUpdate, ForgotPasswordRequest
+)
+from app.models.models import User, RoleEnum
 from app.auth.password import get_password_hash, verify_password
 from app.auth.jwt import create_access_token
+from app.auth.permissions import get_current_active_user, check_role
 from datetime import timedelta
 from app.config.settings import settings
 import firebase_admin
@@ -14,13 +20,11 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserResponse)
 def register(user_in: UserCreate, db: Client = Depends(get_db)):
-    # Check if user exists in Firestore
     users_ref = db.collection('users')
     query = users_ref.where('email', '==', user_in.email).stream()
     if list(query):
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create user in Firebase Auth
     try:
         fb_user = firebase_auth.create_user(
             email=user_in.email,
@@ -32,25 +36,28 @@ def register(user_in: UserCreate, db: Client = Depends(get_db)):
 
     hashed_password = get_password_hash(user_in.password)
     
-    # Save user details to Firestore
     user_data = {
         "id": fb_user.uid,
         "name": user_in.name,
         "email": user_in.email,
         "hashed_password": hashed_password,
-        "role": user_in.role.value,
-        "department_id": user_in.department_id,
+        "role": user_in.role.value if hasattr(user_in.role, 'value') else str(user_in.role),
+        "department_id": user_in.department_id or "AIML",
+        "designation": user_in.designation or "Assistant Professor",
+        "area_of_interest": user_in.area_of_interest,
+        "joining_date": user_in.joining_date or "Not Available",
+        "association": user_in.association or "Regular",
+        "avatar_url": user_in.avatar_url,
         "status": "ACTIVE"
     }
     
     users_ref.document(fb_user.uid).set(user_data)
-    
     return user_data
 
-@router.post("/login", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Client = Depends(get_db)):
+@router.post("/login", response_model=LoginResponse)
+def login(login_in: LoginRequest, db: Client = Depends(get_db)):
     users_ref = db.collection('users')
-    query = users_ref.where('email', '==', form_data.username).stream()
+    query = users_ref.where('email', '==', login_in.email).stream()
     users = list(query)
     
     if not users:
@@ -62,7 +69,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Client = Depends
     
     user_doc = users[0].to_dict()
     
-    if not verify_password(form_data.password, user_doc.get("hashed_password", "")):
+    if not verify_password(login_in.password, user_doc.get("hashed_password", "")):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -73,4 +80,129 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Client = Depends
     access_token = create_access_token(
         data={"sub": user_doc["email"]}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    
+    user_response = UserResponse(
+        id=user_doc.get("id", users[0].id),
+        name=user_doc.get("name", ""),
+        email=user_doc.get("email", ""),
+        role=user_doc.get("role", RoleEnum.FACULTY),
+        department_id=user_doc.get("department_id", "AIML"),
+        designation=user_doc.get("designation", "Assistant Professor"),
+        area_of_interest=user_doc.get("area_of_interest"),
+        joining_date=user_doc.get("joining_date", "Not Available"),
+        association=user_doc.get("association", "Regular"),
+        avatar_url=user_doc.get("avatar_url"),
+        status=user_doc.get("status", "ACTIVE")
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user_response
+    }
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
+
+@router.post("/forgot-password")
+def forgot_password(req: ForgotPasswordRequest):
+    try:
+        link = firebase_auth.generate_password_reset_link(req.email)
+        return {"message": "Password reset email generated", "link": link}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Employee / Faculty Management Endpoints
+@router.get("/employees", response_model=List[EmployeeResponse])
+def list_employees(
+    search: Optional[str] = Query(None, alias="q"),
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    users_ref = db.collection('users')
+    docs = users_ref.stream()
+    employees = []
+    for doc in docs:
+        data = doc.to_dict()
+        if search:
+            q = search.lower()
+            name_match = q in data.get("name", "").lower()
+            area_match = q in data.get("area_of_interest", "").lower() if data.get("area_of_interest") else False
+            desig_match = q in data.get("designation", "").lower() if data.get("designation") else False
+            if not (name_match or area_match or desig_match):
+                continue
+        employees.append(data)
+    return employees
+
+@router.get("/employees/{employee_id}", response_model=EmployeeResponse)
+def get_employee(
+    employee_id: str,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    doc_ref = db.collection('users').document(employee_id)
+    doc = doc_ref.get()
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return doc.to_dict()
+
+@router.post("/employees", response_model=EmployeeResponse)
+def create_employee(
+    employee_in: EmployeeCreate,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(check_role([RoleEnum.ADMIN, RoleEnum.HOD]))
+):
+    users_ref = db.collection('users')
+    query = users_ref.where('email', '==', employee_in.email).stream()
+    if list(query):
+        raise HTTPException(status_code=400, detail="Email already exists")
+    
+    pwd = employee_in.password or "Sbjit@123"
+    try:
+        fb_user = firebase_auth.create_user(
+            email=employee_in.email,
+            password=pwd,
+            display_name=employee_in.name
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    hashed_password = get_password_hash(pwd)
+    data = {
+        "id": fb_user.uid,
+        "name": employee_in.name,
+        "email": employee_in.email,
+        "hashed_password": hashed_password,
+        "role": employee_in.role.value if hasattr(employee_in.role, 'value') else str(employee_in.role),
+        "department_id": employee_in.department_id or "AIML",
+        "designation": employee_in.designation or "Assistant Professor",
+        "area_of_interest": employee_in.area_of_interest,
+        "joining_date": employee_in.joining_date or "Not Available",
+        "association": employee_in.association or "Regular",
+        "avatar_url": employee_in.avatar_url,
+        "status": "ACTIVE"
+    }
+    db.collection('users').document(fb_user.uid).set(data)
+    return data
+
+@router.put("/employees/{employee_id}", response_model=EmployeeResponse)
+def update_employee(
+    employee_id: str,
+    employee_update: EmployeeUpdate,
+    db: Client = Depends(get_db),
+    current_user: User = Depends(check_role([RoleEnum.ADMIN, RoleEnum.HOD]))
+):
+    doc_ref = db.collection('users').document(employee_id)
+    doc = doc_ref.get()
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    update_data = {k: v for k, v in employee_update.dict(exclude_unset=True).items() if v is not None}
+    if "role" in update_data and hasattr(update_data["role"], 'value'):
+        update_data["role"] = update_data["role"].value
+        
+    doc_ref.update(update_data)
+    updated_doc = doc_ref.get().to_dict()
+    return updated_doc
+
