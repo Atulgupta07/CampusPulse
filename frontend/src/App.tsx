@@ -6,22 +6,21 @@ import {
 } from "react-router-dom";
 
 
-import Notifications from "./pages/Notifications";
-import Dashboard from "./pages/Dashboard";
-import Employees from "./pages/Employees";
-import Tasks from "./pages/Tasks";
-import CalendarPage from "./pages/CalendarPage";
-import Approvals from "./pages/Approvals";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
-
-import Chatbot from "./components/Chatbot";
-import Login from "./pages/Auth/Login";
-
+import { lazy, Suspense } from "react";
 import MainLayout from "./layouts/MainLayout";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import Chatbot from "./components/Chatbot";
 
-
-
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Employees = lazy(() => import("./pages/Employees"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const CalendarPage = lazy(() => import("./pages/CalendarPage"));
+const Approvals = lazy(() => import("./pages/Approvals"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Login = lazy(() => import("./pages/Auth/Login"));
 
 // Landing Page
 
@@ -313,135 +312,40 @@ transition
 
 function App(){
 
-
-return(
-
-<BrowserRouter>
-
-
-<Routes>
-
-
-
-{/* Landing */}
-
-<Route
-
-path="/"
-
-element={<LandingPage/>}
-
-/>
-
-
-
-{/* Login */}
-
-<Route
-
-path="/login"
-
-element={<Login/>}
-
-/>
-
-
-
-
-
-{/* Main Application */}
-
-<Route element={<MainLayout/>}>
-
-
-<Route
-
-path="/dashboard"
-
-element={<Dashboard/>}
-
-/>
-
-
-<Route
-
-path="/employees"
-
-element={<Employees/>}
-
-/>
-
-
-<Route
-
-path="/tasks"
-
-element={<Tasks/>}
-
-/>
-
-
-<Route
-
-path="/calendar"
-
-element={<CalendarPage/>}
-
-/>
-
-
-<Route
-
-path="/approvals"
-
-element={<Approvals/>}
-
-/>
-
-
-<Route
-
-path="/reports"
-
-element={<Reports/>}
-
-/>
-
-
-<Route
-
-path="/settings"
-
-element={<Settings/>}
-
-/>
-
-
-<Route
-
-path="/notifications"
-
-element={<Notifications/>}
-
-/>
-
-
-
-</Route>
-
-
-
-</Routes>
-
-
-
-<Chatbot/>
-
-
-</BrowserRouter>
-
-);
-
+  return(
+    <AuthProvider>
+      <BrowserRouter>
+        <Suspense fallback={
+          <div className="flex h-screen w-screen items-center justify-center bg-blue-50">
+            <div className="w-10 h-10 border-4 border-t-blue-600 border-r-transparent border-b-blue-600 border-l-transparent rounded-full animate-spin"></div>
+          </div>
+        }>
+          <Routes>
+            {/* Landing */}
+            <Route path="/" element={<LandingPage/>} />
+            
+            {/* Login */}
+            <Route path="/login" element={<Login/>} />
+            
+            {/* Main Application */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<MainLayout/>}>
+                <Route path="/dashboard" element={<Dashboard/>} />
+                <Route path="/employees" element={<Employees/>} />
+                <Route path="/tasks" element={<Tasks/>} />
+                <Route path="/calendar" element={<CalendarPage/>} />
+                <Route path="/approvals" element={<Approvals/>} />
+                <Route path="/reports" element={<Reports/>} />
+                <Route path="/settings" element={<Settings/>} />
+                <Route path="/notifications" element={<Notifications/>} />
+              </Route>
+            </Route>
+          </Routes>
+          <Chatbot/>
+        </Suspense>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 
 }
 

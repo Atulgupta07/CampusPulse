@@ -4,40 +4,48 @@ import {
   FaUserCircle
 } from "react-icons/fa";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-
+import { useAuth } from "../contexts/AuthContext";
+import { searchApi } from "../api";
+import { FaSignOutAlt } from "react-icons/fa";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  
+  const [search,setSearch] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-
-const navigate = useNavigate();
-
-
-const [search,setSearch] = useState("");
-
-
-
-const suggestions = [
-
-"AI Lab Maintenance",
-"Final Year Project Review",
-"Student Research Tracking",
-"Machine Learning Workshop",
-"Cyber Security Seminar",
-"Faculty Profile",
-"Notifications"
-
-];
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
 
 
-const filtered = suggestions.filter((item)=>
+  useEffect(() => {
+    if (!search.trim()) {
+      setResults([]);
+      return;
+    }
+    
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const data = await searchApi.globalSearch(search);
+        setResults(data.results || []);
+      } catch (err) {
+        console.error("Search error", err);
+        setResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
 
-item.toLowerCase().includes(search.toLowerCase())
-
-);
+    return () => clearTimeout(delayDebounceFn);
+  }, [search]);
 
 
 
@@ -99,61 +107,40 @@ className="outline-none ml-3 w-full text-gray-700"
 
 
 {
-
 search && (
 
-
-<div className="absolute top-14 left-0 w-96 bg-white rounded-xl shadow-xl border z-50">
-
+<div className="absolute top-14 left-0 w-96 bg-white rounded-xl shadow-xl border z-50 max-h-96 overflow-y-auto">
 
 {
-
-filtered.length > 0 ?
-
-
-filtered.map((item,index)=>(
-
-
-<div
-
-key={index}
-
-onClick={()=>setSearch(item)}
-
-className="px-5 py-3 hover:bg-blue-50 cursor-pointer text-gray-700"
-
->
-
-{item}
-
-</div>
-
-
-))
-
-
-:
-
-
-<div className="p-4 text-gray-500">
-
-No Result Found
-
-</div>
-
-
-
+  isSearching ? (
+    <div className="p-4 text-gray-500 text-center">Searching...</div>
+  ) : results.length > 0 ? (
+    results.map((item,index)=>(
+      <div
+        key={item.id || index}
+        onClick={() => {
+           setSearch(""); // clear on select
+           // Route according to type, simplistic mapping:
+           if(item.type === 'faculty') navigate('/employees');
+           else if(item.type === 'task') navigate('/tasks');
+           else if(item.type === 'event') navigate('/calendar');
+           else if(item.type === 'notification') navigate('/notifications');
+           else navigate('/dashboard');
+        }}
+        className="px-5 py-3 hover:bg-blue-50 cursor-pointer text-gray-700 flex flex-col"
+      >
+        <span className="font-bold">{item.title}</span>
+        <span className="text-xs text-gray-400 capitalize">{item.type}</span>
+      </div>
+    ))
+  ) : (
+    <div className="p-4 text-gray-500 text-center">No Result Found</div>
+  )
 }
 
-
-
 </div>
 
-
-
 )
-
-
 }
 
 
@@ -249,7 +236,7 @@ className="relative bg-white p-3 rounded-xl shadow hover:bg-blue-50 transition"
 
 
 
-<div className="flex items-center gap-3 bg-white shadow-sm px-4 py-2 rounded-xl">
+<div className="flex items-center gap-3 bg-white shadow-sm px-4 py-2 rounded-xl group relative">
 
 
 
@@ -263,7 +250,7 @@ className="relative bg-white p-3 rounded-xl shadow hover:bg-blue-50 transition"
 
 <h3 className="font-bold text-gray-700">
 
-Tanvi
+{user?.name || "User"}
 
 </h3>
 
@@ -271,7 +258,7 @@ Tanvi
 
 <p className="text-sm text-gray-500">
 
-Admin
+{user?.role || "Faculty"}
 
 </p>
 
@@ -279,6 +266,14 @@ Admin
 
 </div>
 
+{/* Logout Dropdown/Button */}
+<button 
+  onClick={handleLogout}
+  className="hidden group-hover:flex absolute right-0 top-full mt-2 bg-white border border-red-100 text-red-600 px-4 py-2 rounded-lg shadow-lg items-center gap-2 hover:bg-red-50 z-50 whitespace-nowrap"
+>
+  <FaSignOutAlt />
+  Logout
+</button>
 
 
 </div>

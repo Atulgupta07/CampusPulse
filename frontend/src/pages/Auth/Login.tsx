@@ -2,6 +2,7 @@ import loginImage from "../../assets/login image.jpg";
 
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 
 import {
   Eye,
@@ -12,21 +13,31 @@ import {
   BrainCircuit
 } from "lucide-react";
 
-
 export default function Login() {
-
-
   const navigate = useNavigate();
+  const { login } = useAuth();
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
 
   const [showPassword,setShowPassword] = useState(false);
 
 
 
-  const handleLogin = () => {
-
-    navigate("/dashboard");
-
+  const handleLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await login({ email, password });
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Failed to log in");
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -211,6 +222,13 @@ export default function Login() {
 
 
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl mb-4">
+              {error}
+            </div>
+          )}
+
           {/* Email */}
 
 
@@ -248,6 +266,8 @@ export default function Login() {
             type="email"
 
             placeholder="Enter college email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
 
             className="
             w-full
@@ -320,6 +340,8 @@ export default function Login() {
 
 
             placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
 
 
 
@@ -455,10 +477,12 @@ export default function Login() {
           gap-3
           hover:scale-105
           transition
+          disabled:opacity-50
+          disabled:cursor-not-allowed
           ">
 
 
-          Login
+          {loading ? "Logging in..." : "Login"}
 
 
           <ArrowRight size={20}/>

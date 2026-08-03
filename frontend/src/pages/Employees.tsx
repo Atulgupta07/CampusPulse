@@ -1,144 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { employeesApi } from "../api";
+import { EmployeeResponse } from "../types";
 
 
 export default function Employees() {
 
 
 const [search,setSearch] = useState("");
+const [selectedFaculty,setSelectedFaculty] = useState<EmployeeResponse | null>(null);
+const [facultyList, setFacultyList] = useState<EmployeeResponse[]>([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState("");
 
-const [selectedFaculty,setSelectedFaculty] = useState<any>(null);
-
-
-
-const facultyList = [
-
-{
-name:"Dr. Animesh Tayal",
-designation:"Assistant Professor & HoD",
-area:"Programming Languages, DAA, Digital Image Processing",
-joining:"Not Available",
-association:"Regular",
-email:"hodcsecm@sbjit.edu.in / animeshtayal@sbjit.edu.in"
-},
-
-{
-name:"Mr. Ravindra R. Rasekar",
-designation:"Assistant Professor",
-area:"Programming, Networking",
-joining:"Not Available",
-association:"Regular",
-email:"ravindrarasekar@sbjit.edu.in"
-},
-
-{
-name:"Dr. Bhushan Mahendra Manjre",
-designation:"Associate Professor",
-area:"Artificial Intelligence, Cyber Forensics, Cloud Computing, Blockchain Technology",
-joining:"Not Available",
-association:"Regular",
-email:"bhushanmanjre@sbjit.edu.in"
-},
-
-{
-name:"Ms. Suchita Surendra Mesakar",
-designation:"Associate Professor",
-area:"Python, Object Oriented Programming",
-joining:"Not Available",
-association:"Regular",
-email:"suchitamesakar@sbjit.edu.in"
-},
-
-{
-name:"Ms. Sweta Arun Bokade",
-designation:"Assistant Professor",
-area:"Machine Learning, Blockchain Technology, Digital Forensics",
-joining:"Not Available",
-association:"Regular",
-email:"swetabokade@sbjit.edu.in"
-},
-
-{
-name:"Mr. Nitesh Lileshwar Hatwar",
-designation:"Assistant Professor",
-area:"Cybersecurity, Cloud Computing, Cryptography and Network Security, AI",
-joining:"Not Available",
-association:"Regular",
-email:"niteshhatwar@sbjit.edu.in"
-},
-
-{
-name:"Mr. Nikhil Sakhare",
-designation:"Assistant Professor",
-area:"Computer Networks, Security, Cyber Security",
-joining:"29/08/2023",
-association:"Regular",
-email:"nikhilsakhare@sbjit.edu.in"
-},
-
-{
-name:"Mrs. Neha Gurnani",
-designation:"Assistant Professor",
-area:"ML, Python, Power BI, Tableau, C, TOC, OS",
-joining:"Not Available",
-association:"Regular",
-email:"nehagurnani@sbjit.edu.in"
-},
-
-{
-name:"Mrs. Mayuri Getme",
-designation:"Assistant Professor",
-area:"Python, Machine Learning, Image Processing",
-joining:"04/08/2022",
-association:"Regular",
-email:"mayurigetme@sbjit.edu.in"
-},
-
-{
-name:"Ms. Sujata D. Sardare",
-designation:"Assistant Professor",
-area:"Python",
-joining:"06/12/2024",
-association:"Regular",
-email:"sujatasardare@sbjit.edu.in"
-},
-
-{
-name:"Ms. Swati Kamalsingh Thakur",
-designation:"Assistant Professor",
-area:"Machine Learning, Data Structure, Operating System, Blockchain",
-joining:"19/05/2025",
-association:"Regular",
-email:"swatithakur@sbjit.edu.in"
-},
-
-{
-name:"Mrs. Snehal Pawar",
-designation:"Teaching Assistant",
-area:"Networking",
-joining:"06/12/2024",
-association:"Regular",
-email:"snehalpawar@sbjit.edu.in"
-},
-
-{
-name:"Mr. Viveksingh Chauhan",
-designation:"Teaching Assistant (Trainer)",
-area:"DSA, Generative AI, Prompt Engineering, Java, TOC",
-joining:"03/02/2023",
-association:"Contractual",
-email:"vivekchauhan@sbjit.edu.in"
-},
-
-{
-name:"Ms. Harshika Dehariya",
-designation:"Teaching Assistant (Trainer)",
-area:"C++, Java",
-joining:"02/01/2025",
-association:"Regular",
-email:"harshikadehariya@sbjit.edu.in"
-}
-
-];
+useEffect(() => {
+  const fetchEmployees = async () => {
+    try {
+      const data = await employeesApi.getAll();
+      setFacultyList(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load employees");
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchEmployees();
+}, []);
 
 
 
@@ -203,9 +89,16 @@ onChange={(e)=>setSearch(e.target.value)}
 <div className="grid grid-cols-3 gap-6">
 
 
+{loading && <div className="col-span-3 text-center text-lg text-gray-500 py-10">Loading employees...</div>}
+{error && <div className="col-span-3 text-center text-lg text-red-500 py-10">{error}</div>}
 
 {
+!loading && !error && filteredFaculty.length === 0 && (
+  <div className="col-span-3 text-center text-lg text-gray-500 py-10">No employees found.</div>
+)}
 
+{
+!loading && !error &&
 filteredFaculty.map((faculty,index)=>(
 
 
@@ -276,7 +169,7 @@ Faculty
 
 <br/>
 
-{faculty.area}
+{faculty.area_of_interest || "Not Available"}
 
 </p>
 
@@ -326,14 +219,19 @@ selectedFaculty && (
 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
 
-<div className="bg-white w-[500px] rounded-3xl p-8 shadow-xl">
+<div 
+  className="bg-white w-[500px] rounded-3xl p-8 shadow-xl"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-title"
+>
 
 
 
 <div className="flex justify-between">
 
 
-<h2 className="text-2xl font-bold text-blue-700">
+<h2 id="modal-title" className="text-2xl font-bold text-blue-700">
 
 Faculty Profile
 
@@ -345,6 +243,7 @@ Faculty Profile
 onClick={()=>setSelectedFaculty(null)}
 
 className="text-red-500 text-2xl"
+aria-label="Close profile modal"
 
 >
 
@@ -379,21 +278,21 @@ className="text-red-500 text-2xl"
 
 <p>
 <b>Area of Interest:</b><br/>
-{selectedFaculty.area}
+{selectedFaculty.area_of_interest || "Not Available"}
 </p>
 
 
 
 <p>
 <b>Joining Date:</b><br/>
-{selectedFaculty.joining}
+{selectedFaculty.joining_date || "Not Available"}
 </p>
 
 
 
 <p>
 <b>Association:</b><br/>
-{selectedFaculty.association}
+{selectedFaculty.association || "Not Available"}
 </p>
 
 
