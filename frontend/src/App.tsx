@@ -21,6 +21,7 @@ const Approvals = lazy(() => import("./pages/Approvals"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Auth/Login"));
+const Register = lazy(() => import("./pages/Auth/Register"));
 
 // Landing Page
 
@@ -324,8 +325,9 @@ function App(){
             {/* Landing */}
             <Route path="/" element={<LandingPage/>} />
             
-            {/* Login */}
+            {/* Login & Register */}
             <Route path="/login" element={<Login/>} />
+            <Route path="/register" element={<Register/>} />
             
             {/* Main Application */}
             <Route element={<ProtectedRoute />}>

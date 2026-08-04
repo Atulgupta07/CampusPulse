@@ -143,7 +143,6 @@ export default function CalendarPage() {
           {/* FullCalendar Integration */}
           <div className="bg-white p-6 rounded-2xl shadow mb-8">
             <FullCalendar
-              // @ts-expect-error FullCalendar plugin types mismatch with current typescript configuration
               plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
               initialView="dayGridMonth"
               events={calendarEvents}

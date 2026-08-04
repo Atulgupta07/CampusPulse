@@ -1,6 +1,6 @@
 import loginImage from "../../assets/login image.jpg";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -498,6 +498,18 @@ export default function Login() {
 
 
 
+
+          <p className="
+          text-center
+          text-sm
+          text-blue-200
+          mt-6
+          ">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-white hover:underline font-semibold">
+            Sign up here
+          </Link>
+          </p>
 
           <p className="
           text-center

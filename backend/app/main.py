@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.scheduler.jobs import start_scheduler, stop_scheduler
 from app.utils.logging import logger
+from app.database.session import init_firebase
 from fastapi.responses import JSONResponse
 import sys
 from contextlib import asynccontextmanager
@@ -11,6 +12,7 @@ from google.api_core.exceptions import GoogleAPICallError, RetryError
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting CampusPulse API...")
+    init_firebase()
     start_scheduler()
     yield
     stop_scheduler()

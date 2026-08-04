@@ -3,7 +3,8 @@ import {
   LoginRequest, 
   LoginResponse, 
   UserResponse,
-  ForgotPasswordRequest
+  ForgotPasswordRequest,
+  RegisterRequest
 } from '../types';
 
 export const authApi = {
@@ -12,6 +13,9 @@ export const authApi = {
     
   getCurrentUser: () => 
     client<UserResponse>('/auth/me'),
+    
+  register: (data: RegisterRequest) =>
+    client<UserResponse>('/auth/register', { data }),
     
   forgotPassword: (data: ForgotPasswordRequest) => 
     client<{ message: string }>('/auth/forgot-password', { data }),
