@@ -27,13 +27,12 @@ export const client = async <T>(endpoint: string, options: RequestOptions = {}):
   const { data, headers: customHeaders, ...customConfig } = options;
   const token = getAuthToken();
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...customHeaders,
+    ...(customHeaders as Record<string, string>),
   };
 
   if (token) {
-    const headers = options.headers as Record<string, string>;
     headers['Authorization'] = `Bearer ${token}`;
   }
 

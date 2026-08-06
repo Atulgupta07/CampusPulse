@@ -22,7 +22,8 @@ const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Auth/Login"));
 const Register = lazy(() => import("./pages/Auth/Register"));
-
+const JoinDepartment = lazy(() => import("./pages/JoinDepartment"));
+const CreateDepartment = lazy(() => import("./pages/CreateDepartment"));
 // Landing Page
 
 function LandingPage(){
@@ -340,6 +341,8 @@ function App(){
                 <Route path="/reports" element={<Reports/>} />
                 <Route path="/settings" element={<Settings/>} />
                 <Route path="/notifications" element={<Notifications/>} />
+                <Route path="/join-department" element={<JoinDepartment/>} />
+                <Route path="/create-department" element={<CreateDepartment/>} />
               </Route>
             </Route>
           </Routes>

@@ -12,6 +12,8 @@ class RoleEnum(str, enum.Enum):
     TA = "TA"
     STUDENT = "STUDENT"
     STUDENT_REP = "STUDENT_REP"
+    LAB_ASSISTANT = "LAB_ASSISTANT"
+    STAFF = "STAFF"
 
 class PriorityEnum(str, enum.Enum):
     LOW = "LOW"
@@ -44,7 +46,7 @@ class User(BaseModel):
     email: str
     hashed_password: Optional[str] = None
     role: RoleEnum = RoleEnum.FACULTY
-    department_id: Optional[str] = "AIML"
+    department_id: Optional[str] = None
     designation: Optional[str] = "Assistant Professor"
     area_of_interest: Optional[str] = None
     joining_date: Optional[str] = "Not Available"

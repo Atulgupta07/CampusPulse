@@ -8,7 +8,7 @@ class UserBase(BaseModel):
     name: str
     email: EmailStr
     role: RoleEnum = RoleEnum.FACULTY
-    department_id: Optional[str] = "AIML"
+    department_id: Optional[str] = None
     designation: Optional[str] = "Assistant Professor"
     area_of_interest: Optional[str] = None
     joining_date: Optional[str] = "Not Available"
@@ -229,10 +229,26 @@ class GlobalSearchResponse(BaseModel):
     query: str
     results: List[SearchResultItem]
 
+# Department Schemas
+class DepartmentCreate(BaseModel):
+    name: str
 
+class DepartmentResponse(BaseModel):
+    id: str
+    name: str
+    code: str
+    hod_id: str
 
+# Join Request Schemas
+class JoinRequestCreate(BaseModel):
+    code: str
 
-
-
-
-
+class JoinRequestResponse(BaseModel):
+    id: str
+    faculty_id: str
+    faculty_name: str
+    faculty_email: str
+    department_id: str
+    department_code: str
+    status: str
+    requested_at: str

@@ -7,17 +7,17 @@ import {
 
 export const employeesApi = {
   getAll: (skip = 0, limit = 100) => 
-    client<EmployeeResponse[]>(`/auth/users?skip=${skip}&limit=${limit}`),
+    client<EmployeeResponse[]>(`/auth/employees?skip=${skip}&limit=${limit}`),
     
   getById: (id: string) => 
-    client<EmployeeResponse>(`/auth/users/${id}`),
+    client<EmployeeResponse>(`/auth/employees/${id}`),
     
   create: (data: EmployeeCreate) => 
-    client<EmployeeResponse>('/auth/users', { data }),
+    client<EmployeeResponse>('/auth/employees', { data }),
     
   update: (id: string, data: EmployeeUpdate) => 
-    client<EmployeeResponse>(`/auth/users/${id}`, { method: 'PUT', data }),
+    client<EmployeeResponse>(`/auth/employees/${id}`, { method: 'PUT', data }),
     
   delete: (id: string) => 
-    client<{ message: string }>(`/auth/users/${id}`, { method: 'DELETE' }),
+    client<{ message: string }>(`/auth/employees/${id}`, { method: 'DELETE' }),
 };

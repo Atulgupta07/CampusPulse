@@ -12,6 +12,8 @@ import {
 
 
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { Building2 } from "lucide-react";
 
 
 
@@ -83,6 +85,23 @@ icon:<FaCog/>
 
 
 ];
+
+const { user } = useAuth();
+if (!user?.department_id) {
+  if (user?.role === "ADMIN" || user?.role === "HOD") {
+    menu.push({
+      name: "Create Department",
+      path: "/create-department",
+      icon: <Building2 />
+    });
+  } else {
+    menu.push({
+      name: "Join Department",
+      path: "/join-department",
+      icon: <Building2 />
+    });
+  }
+}
 
 
 

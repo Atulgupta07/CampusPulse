@@ -11,7 +11,8 @@ from app.api.v1.notifications import router as notifications_router
 from app.api.v1.settings import router as settings_router
 from app.api.v1.search import router as search_router
 from app.api.v1.test import router as test_router
-
+from app.api.v1.departments import router as departments_router
+from app.api.v1.join import router as join_router
 api_router = APIRouter()
 
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
@@ -24,5 +25,6 @@ api_router.include_router(reports_router, prefix="/reports", tags=["reports"])
 api_router.include_router(notifications_router, prefix="/notifications", tags=["notifications"])
 api_router.include_router(settings_router, prefix="/settings", tags=["settings"])
 api_router.include_router(search_router, prefix="/search", tags=["search"])
-api_router.include_router(test_router)
-
+api_router.include_router(departments_router, prefix="/departments", tags=["departments"])
+api_router.include_router(join_router, prefix="/join", tags=["join"])
+api_router.include_router(test_router)

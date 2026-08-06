@@ -8,3 +8,5 @@ export * from './ai';
 export * from './reports';
 export * from './notifications';
 export * from './misc';
+export * from './departments';
+export * from './join';
